@@ -1,0 +1,27 @@
+@startuml
+!theme spacelab
+
+title "BPMN: Test Taking Process (with 'Reg-Wall')"
+
+|Guest|
+start
+:Open website;
+:Find and read an article;
+:See attached test;
+:Click "Take Test";
+
+|System|
+:Check session (Is user authenticated?);
+if (Authenticated?) then (Yes, is User)
+    |User|
+    :Proceed to test;
+    stop
+else (No, is Guest)
+    :Show page/modal "Registration is
+    required to take this test";
+    |Guest|
+    :Select "Register";
+    :Go to "New User Registration" process;
+    stop
+endif
+@enduml

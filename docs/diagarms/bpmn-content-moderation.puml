@@ -1,0 +1,45 @@
+@startuml
+!theme spacelab
+
+title "BPMN: New Content Moderation Process (Question/Article)"
+
+|User|
+start
+:Create draft (article/question);
+:Edit content;
+:Click "Submit for Review";
+
+|System|
+:Change status to "Pending Review";
+:Add to "Sandbox" (moderation queue);
+
+|Moderator|
+:Open "Sandbox";
+:Select content for review;
+:Review content;
+if (Content correct?) then (Yes)
+    :Click "Approve";
+else (No)
+    :Click "Reject";
+    :Mandatory: provide reason;
+endif
+
+|System|
+if (Approved?) then (Yes)
+    :Change status to "Approved";
+    :Publish content to site;
+else (No)
+    :Change status to "Needs Revision";
+    :Send notification to User with reason;
+endif
+
+|User|
+if (Status "Needs Revision"?) then (Yes)
+    :Open notification;
+    :Edit content;
+    :Resubmit for review;
+    stop
+else (No)
+    stop
+endif
+@enduml
