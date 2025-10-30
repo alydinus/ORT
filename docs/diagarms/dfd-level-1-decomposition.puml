@@ -1,32 +1,48 @@
 @startuml
-title DFD Level 1 — ORT Platform Subsystems
+title DFD Level 1 — ORT Preparation Platform
 
+actor Guest
 actor User
 actor Moderator
 actor Administrator
-database Database
 
-rectangle "Auth-Service" as Auth {
-  User --> Auth : Register/Login
-  Auth --> User : JWT Token
-}
+database "User Data Store" as UserDB
+database "Content Data Store" as ContentDB
+database "Test Results Store" as TestDB
 
-rectangle "Content-Service" as Content {
-  User --> Content : Submit Articles/Questions
-  Content --> Database : Store Content
-}
+' Main processes
+process "1. Authentication" as Auth
+process "2. Content Management" as Content
+process "3. Moderation Workflow" as Mod
+process "4. Testing Module" as Test
 
-rectangle "Moderation-Service" as Mod {
-  Moderator --> Mod : Review Submissions
-  Mod --> Content : Approve/Reject Content
-  Mod --> User : Send Notification
-}
+' Guest interactions
+Guest --> Content : Request Approved Articles
+Content --> Guest : Approved Articles
 
-rectangle "Testing-Service" as Test {
-  User --> Test : Take Test
-  Test --> Database : Store Results
-}
+' User interactions
+User --> Auth : Register/Login Data
+Auth --> UserDB : Store/Retrieve Credentials
+Auth --> User : JWT / Auth Confirmation
 
-Administrator --> Mod : Manage Moderators
-Auth --> Database : User Data
+User --> Content : Submit Article/Question
+Content --> ContentDB : Save Draft/Submission
+ContentDB --> Content : Article Data
+Content --> User : Submission Status
+
+User --> Test : Start Test
+Test --> TestDB : Store Result
+Test --> User : Test Result
+
+' Moderator interactions
+Moderator --> Mod : Review Submissions
+Mod --> ContentDB : Fetch Pending Content
+Mod --> ContentDB : Update Status (Approved/Rejected)
+Mod --> Moderator : Review Result
+Mod --> User : Notification (via system)
+
+' Admin interactions
+Administrator --> Mod : Manage Moderators/Sections
+Mod --> Administrator : Reports/Updates
+
 @enduml
