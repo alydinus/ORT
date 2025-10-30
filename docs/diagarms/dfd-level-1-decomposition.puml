@@ -1,0 +1,32 @@
+@startuml
+title DFD Level 1 — ORT Platform Subsystems
+
+actor User
+actor Moderator
+actor Administrator
+database Database
+
+rectangle "Auth-Service" as Auth {
+  User --> Auth : Register/Login
+  Auth --> User : JWT Token
+}
+
+rectangle "Content-Service" as Content {
+  User --> Content : Submit Articles/Questions
+  Content --> Database : Store Content
+}
+
+rectangle "Moderation-Service" as Mod {
+  Moderator --> Mod : Review Submissions
+  Mod --> Content : Approve/Reject Content
+  Mod --> User : Send Notification
+}
+
+rectangle "Testing-Service" as Test {
+  User --> Test : Take Test
+  Test --> Database : Store Results
+}
+
+Administrator --> Mod : Manage Moderators
+Auth --> Database : User Data
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+title Context Diagram (DFD Level 0) — ORT Preparation Platform
+
+actor Guest
+actor User
+actor Moderator
+actor Administrator
+database Database
+
+rectangle "ORT Preparation Platform" as System {
+}
+
+Guest --> System : View Approved Articles
+User --> System : Register/Login\nSubmit Content\nTake Tests
+Moderator --> System : Review and Approve/Reject Content
+Administrator --> System : Manage Moderators\nManage Sections
+System --> Database : Read/Write Data
+
+@enduml
