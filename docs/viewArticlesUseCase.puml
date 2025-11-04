@@ -1,0 +1,10 @@
+@startuml
+actor User as user
+participant "ORT Platform" as platform
+database "Database" as db
+title "Use Case: View Articles"
+user -> platform : Open Articles Page
+platform -> db : Fetch Approved Articles
+db --> platform : Return List of Approved Articles
+platform -> user : Display Articles List
+@enduml

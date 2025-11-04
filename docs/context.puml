@@ -1,0 +1,25 @@
+@startuml
+actor User as user
+actor Guest as guest
+actor Moderator as moderator
+
+left to right direction
+
+rectangle "ORT Preparation Platform" {
+        (View Articles) as viewArticles
+        (Suggest Edits/New Article/Question) as suggestEdits
+        (Submit Feedback on Articles/Questions/Tests) as submitFeedback
+        (Register) as register
+        (Login) as login
+        (Take Tests) as takeTests
+}
+
+guest -- login
+guest -- viewArticles
+guest -- register
+user -- viewArticles
+user -- submitFeedback
+user -- takeTests
+moderator -- suggestEdits
+
+@enduml

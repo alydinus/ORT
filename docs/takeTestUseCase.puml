@@ -1,0 +1,16 @@
+@startuml
+actor AuthenticatedUser as user
+participant "ORT System" as system
+database "Database" as db
+title "Use Case: Take Test"
+user -> system : Open Test Page
+system -> user : Display Test Interface
+user -> system : Select Test and Start
+system -> db : Fetch Test Questions
+db --> system : Return Test Questions
+system -> user : Display Test Questions
+user -> system : Submit Answers
+system -> system : Evaluate Answers
+system -> user : Display Test Results
+system -> db : Save Test Results
+@enduml
