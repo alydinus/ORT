@@ -1,0 +1,25 @@
+@startuml
+actor User as user
+participant "ORT Platform" as platform
+
+title "Interaction Overview"
+user -> platform : Open Application (website or mobile app)
+platform -> user : Display Home Page with Options (Login, View Articles, Take Test, Submit Feedback)
+user -> platform : Navigate to Desired Section (Articles, Tests, Feedback)
+platform -> user : Display Selected Section Interface
+user -> platform : User wants to take a test
+platform -> user : Redirect to login or registration if not authenticated
+user -> platform : Login/Register
+platform -> user : Display Test Interface
+user -> platform : Select Test and Start
+platform -> user : Display Test Questions
+user -> platform : Submit Answers
+platform -> user : Display Test Results
+user -> platform : User wants to view articles
+platform -> user : Display Articles List
+user -> platform : Read Articles
+user -> platform : User wants to submit feedback
+platform -> user : Display Feedback Form
+user -> platform : Submit Feedback (Like/Dislike, Comments)
+platform -> user : Show Confirmation "Feedback Submitted Successfully"
+@enduml
