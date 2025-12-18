@@ -1,0 +1,12 @@
+@startuml
+actor User as user
+participant "ORT Platform" as platform
+database "Database" as db
+title "Use Case: Submit Feedback"
+user -> platform : Open Question/Article/Test
+platform -> user : Display Question/Article/Test
+user -> platform : Submit Feedback (Like/Dislike, Comments)
+platform -> db : Save Feedback
+db --> platform : Feedback Saved Confirmation
+platform -> user : Show Confirmation "Feedback Submitted Successfully"
+@enduml

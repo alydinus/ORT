@@ -1,0 +1,26 @@
+@startuml
+title DFD Level 0 — ORT Preparation Platform (Context Diagram)
+
+actor Guest
+actor User
+actor Moderator
+actor Administrator
+database "Content Database" as DB
+
+process "0. ORT Preparation Platform" as System
+
+Guest --> System : View Articles Request
+System --> Guest : Approved Articles
+
+User --> System : Register/Login\nSubmit Questions/Articles\nTake Tests
+System --> User : Auth Response\nTest Results
+
+Moderator --> System : Approve/Reject Content
+System --> Moderator : Pending Submissions
+
+Administrator --> System : Manage Moderators\nManage Sections
+System --> Administrator : Reports/Stats
+
+System --> DB : Read/Write Data
+
+@enduml

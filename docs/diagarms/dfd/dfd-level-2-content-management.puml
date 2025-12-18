@@ -1,0 +1,23 @@
+@startuml
+title DFD Level 2 — Process 2. Content Management
+
+actor User
+actor Moderator
+database "Content Data Store" as ContentDB
+
+process "2.1 Create Draft" as Draft
+process "2.2 Submit for Review" as Submit
+process "2.3 Publish Article" as Publish
+
+User --> Draft : Article Draft
+Draft --> ContentDB : Save Draft
+
+User --> Submit : Submit Draft
+Submit --> ContentDB : Mark as Pending
+ContentDB --> Moderator : New Submission Notification
+
+Moderator --> Publish : Approve/Reject
+Publish --> ContentDB : Update Status (Approved/Rejected)
+ContentDB --> User : Notification of Decision
+
+@enduml

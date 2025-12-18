@@ -1,0 +1,18 @@
+@startuml
+actor User as user
+participant "ORT System" as system
+database "Database" as db
+title "Use Case: User Registration"
+user -> system : Open Registration Page
+system -> user : Display Registration Form
+user -> system : Enters Email and Password
+system -> db : Check if Email Exists and Password Matches
+alt Credentials are valid:
+    db -> system : Credentials Valid
+    system -> user : Redirect to Dashboard
+else Email Not Exists or Passwords Do Not Match:
+    db --> system : Email Not Exists or Passwords Do Not Match
+    system -> user : Show Error "Invalid email or password"
+end
+
+@enduml

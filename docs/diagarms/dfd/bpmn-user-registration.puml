@@ -1,0 +1,36 @@
+@startuml
+!theme spacelab
+
+title "BPMN: New User Registration Process"
+
+|Guest|
+start
+:Click "Register";
+:Enter Email, Password,
+Password Confirmation;
+:Click "Sign Up";
+
+|System|
+:Validate data
+(Passwords match? Email valid?);
+if (Data invalid?) then (Yes)
+    :Show error
+    (e.g., "Passwords do not match");
+else (No)
+    :Check Email in DB
+    (Already exists?);
+    if (Email taken?) then (Yes)
+        :Show error
+        (e.g., "Email already in use");
+    else (No)
+        :Create new User record in DB
+        (status "Active");
+        :Create session
+        (Log in user);
+        :Redirect to dashboard as User;
+    endif
+endif
+
+|User|
+stop
+@enduml

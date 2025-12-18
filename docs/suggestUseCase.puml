@@ -1,0 +1,12 @@
+@startuml
+actor Moderator as moderator
+participant "ORT System" as system
+database "Database" as db
+title "Use Case: Suggest Use Case"
+moderator -> system : Open Suggestion Page
+system -> moderator : Display Suggestion Form
+moderator -> system : Enters Suggestion Details
+system -> db : Save Suggestion
+db --> system : Suggestion Saved Confirmation
+system -> moderator : Show Confirmation "Suggestion Submitted Successfully"
+@enduml

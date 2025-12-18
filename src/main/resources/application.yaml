@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: ORT
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5433/ort}
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:1}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    enabled: false
+
+  swagger-ui:
+    path: /swagger-ui.html
+jwt:
+  access-secret: ${JWT_ACCESS_SECRET:defaultaccesssecretaksfjlhdklhjafvsdlkjhafsdkljhasfdakjlhsfsadkljhfasdjkhlfdas}
+  refresh-secret: ${JWT_REFRESH_SECRET:defaultrefreshsecretzxvcblkjbhvahjkiposhfuioawerihuoaqfljihkweqrljhkfqwerlkhjlhkj}
+  access-exp-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
+  refresh-exp-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
