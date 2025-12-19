@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/v1/api/articles")
 @RequiredArgsConstructor
@@ -29,8 +31,7 @@ public class ArticleController {
     public ResponseEntity<ArticleResponse> getArticleById(@PathVariable Long id) {
         return new ResponseEntity<>(
                 articleMapper.toResponse(articleService.getArticleById(id)),
-                HttpStatus.OK
-        );
+                HttpStatus.OK);
     }
 
     @GetMapping
@@ -40,29 +41,51 @@ public class ArticleController {
                         .stream()
                         .map(articleMapper::toResponse)
                         .toList(),
-                HttpStatus.OK
-        );
+                HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<ArticleResponse> createArticle(@RequestBody CreateArticleRequest request) {
         return new ResponseEntity<>(
                 articleMapper.toResponse(articleService.createArticle(request)),
-                HttpStatus.CREATED
-        );
+                HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ArticleResponse> updateArticle(@PathVariable Long id, @RequestBody UpdateArticleRequest request) {
+    public ResponseEntity<ArticleResponse> updateArticle(@PathVariable Long id,
+            @RequestBody UpdateArticleRequest request) {
         return new ResponseEntity<>(
                 articleMapper.toResponse(articleService.updateArticle(id, request)),
-                HttpStatus.OK
-        );
+                HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteArticle(@PathVariable Long id) {
         articleService.deleteArticle(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/{id}/view")
+    public ResponseEntity<Void> addView(@PathVariable Long id) {
+        articleService.addView(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/publish")
+    public ResponseEntity<Void> publishArticle(@PathVariable Long id) {
+        articleService.publishArticle(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/hide")
+    public ResponseEntity<Void> hideArticle(@PathVariable Long id) {
+        articleService.hideArticle(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Void> toggleLike(@PathVariable Long id, Principal principal) {
+        articleService.toggleLike(id, principal.getName());
+        return ResponseEntity.ok().build();
     }
 }

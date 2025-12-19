@@ -2,6 +2,8 @@ package kg.spring.ort.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,6 +31,13 @@ public class Question {
     private Long id;
 
     private String questionText;
+
+    @Enumerated(EnumType.STRING)
+    private QuestionType questionType;
+
+    private Integer points;
+
+    @Builder.Default
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answers = new ArrayList<>();
 

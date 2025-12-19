@@ -1,2 +1,9 @@
 databaseChangeLog:
-  - includeAll: 
+  - include:
+      file: db/changelog/changeset/001-initial-schema.xml
+  - include:
+      file: db/changelog/changeset/002-testing-schema.xml
+  - include:
+      file: db/changelog/changeset/003-articles-schema.xml
+  - include:
+      file: db/changelog/changeset/004-admin-schema.xml 

@@ -16,6 +16,8 @@ import java.util.List;
 public class ArticleServiceImpl implements ArticleService {
 
     private final ArticleRepository articleRepository;
+    private final kg.spring.ort.repository.ReactionRepository reactionRepository;
+    private final kg.spring.ort.repository.UserRepository userRepository;
 
     public ArticleEntity createArticle(CreateArticleRequest request) {
         return articleRepository.save(
@@ -24,8 +26,7 @@ public class ArticleServiceImpl implements ArticleService {
                         .content(request.content())
                         .authorId(request.authorId())
                         .html(request.html())
-                        .build()
-        );
+                        .build());
     }
 
     public ArticleEntity getArticleById(Long id) {
@@ -48,5 +49,56 @@ public class ArticleServiceImpl implements ArticleService {
 
     public void deleteArticle(Long id) {
         articleRepository.deleteById(id);
+    }
+
+    @Override
+    public void addView(Long id) {
+        ArticleEntity article = getArticleById(id);
+        article.setViews(article.getViews() + 1);
+        articleRepository.save(article);
+    }
+
+    @Override
+    public void publishArticle(Long id) {
+        ArticleEntity article = getArticleById(id);
+        article.setPublished(true);
+        articleRepository.save(article);
+    }
+
+    @Override
+    public void hideArticle(Long id) {
+        ArticleEntity article = getArticleById(id);
+        article.setPublished(false);
+        articleRepository.save(article);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void toggleLike(Long articleId, String username) {
+        kg.spring.ort.entity.User user = userRepository.findByEmail(username)
+                .or(() -> userRepository.findByUsername(username))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Long userId = user.getId();
+
+        java.util.Optional<kg.spring.ort.entity.ReactionEntity> existing = reactionRepository
+                .findByArticleEntityIdAndAuthorId(articleId, userId);
+        if (existing.isPresent()) {
+            reactionRepository.delete(existing.get());
+        } else {
+            ArticleEntity article = getArticleById(articleId);
+            kg.spring.ort.entity.ReactionEntity reaction = kg.spring.ort.entity.ReactionEntity.builder()
+                    .articleEntityId(articleId)
+                    .reactionValue(kg.spring.ort.valueobj.ReactionValueObject.LIKE)
+                    .authorId(userId)
+                    .build();
+
+            if (article.getReactions() == null) {
+                article.setReactions(new java.util.ArrayList<>());
+            }
+            article.getReactions().add(reaction);
+
+            reactionRepository.save(reaction);
+            articleRepository.save(article);
+        }
     }
 }

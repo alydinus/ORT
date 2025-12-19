@@ -4,9 +4,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,41 +14,29 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
 @Getter
 @Setter
-@Table(name = "articles")
-public class ArticleEntity {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "tests")
+public class TestEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
-    private String content;
+    private String description;
+    private Integer durationMinutes;
+    @Builder.Default
+    private boolean isActive = true;
 
     @Builder.Default
-    private Long views = 0L;
-
-    @Builder.Default
-    private boolean isPublished = false;
-
-    @ManyToOne
-    private Category category;
-
     @ManyToMany
-    private List<Tag> tags;
-
-    @OneToMany
-    private List<ReactionEntity> reactions;
-    @OneToMany
-    private List<CommentEntity> comments;
-    private Long authorId;
-    private String html;
-    private LocalDateTime createdAt;
+    @JoinTable(name = "test_questions", joinColumns = @JoinColumn(name = "test_id"), inverseJoinColumns = @JoinColumn(name = "question_id"))
+    private List<Question> questions = new ArrayList<>();
 }

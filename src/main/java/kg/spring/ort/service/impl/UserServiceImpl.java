@@ -17,24 +17,58 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
+        private final UserRepository userRepository;
+        private final kg.spring.ort.repository.RoleRepository roleRepository;
 
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var myUser = userRepository.findByUsername(username).orElseThrow(
-                () -> new NotFoundException("User not found with username: " + username)
-        );
-        List<String> roles = myUser.getRoles().stream().map(Role::getName).toList();
-        List<SimpleGrantedAuthority> authorities = roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .toList();
-        return new User(
-                myUser.getUsername(),
-                myUser.getPassword(),
-                true,
-                true,
-                true,
-                true,
-                authorities
-        );
-    }
+        @Override
+        public List<kg.spring.ort.entity.User> getAllUsers() {
+                return userRepository.findAll();
+        }
+
+        @Override
+        public void lockUser(Long id) {
+                kg.spring.ort.entity.User user = userRepository.findById(id)
+                                .orElseThrow(() -> new NotFoundException("User not found"));
+                user.setLocked(true);
+                userRepository.save(user);
+        }
+
+        @Override
+        public void unlockUser(Long id) {
+                kg.spring.ort.entity.User user = userRepository.findById(id)
+                                .orElseThrow(() -> new NotFoundException("User not found"));
+                user.setLocked(false);
+                userRepository.save(user);
+        }
+
+        @Override
+        public void assignRole(Long userId, String roleName) {
+                kg.spring.ort.entity.User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new NotFoundException("User not found"));
+                Role role = roleRepository.findByName(roleName)
+                                .orElseThrow(() -> new NotFoundException("Role not found: " + roleName));
+
+                // Avoid duplicates
+                if (!user.getRoles().contains(role)) {
+                        user.getRoles().add(role);
+                        userRepository.save(user);
+                }
+        }
+
+        public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+                var myUser = userRepository.findByUsername(username).orElseThrow(
+                                () -> new NotFoundException("User not found with username: " + username));
+                List<String> roles = myUser.getRoles().stream().map(Role::getName).toList();
+                List<SimpleGrantedAuthority> authorities = roles.stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .toList();
+                return new User(
+                                myUser.getUsername(),
+                                myUser.getPassword(),
+                                myUser.isEnabled(),
+                                true,
+                                true,
+                                !myUser.isLocked(),
+                                authorities);
+        }
 }

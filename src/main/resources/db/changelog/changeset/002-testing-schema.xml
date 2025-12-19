@@ -1,0 +1,82 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet id="002-create-testing-tables" author="antigravity">
+        <!-- Questions Table -->
+        <createTable tableName="questions">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="questions_pkey"/>
+            </column>
+            <column name="question_text" type="VARCHAR(255)"/>
+            <column name="question_type" type="VARCHAR(50)"/>
+            <column name="points" type="INT"/>
+        </createTable>
+
+        <!-- Answers Table -->
+        <createTable tableName="answers">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="answers_pkey"/>
+            </column>
+            <column name="answer_text" type="VARCHAR(255)"/>
+            <column name="is_correct" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="answers"
+                                 constraintName="fk_answers_question" referencedColumnNames="id" referencedTableName="questions"/>
+
+        <!-- Tests Table -->
+        <createTable tableName="tests">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="tests_pkey"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="description" type="TEXT"/>
+            <column name="duration_minutes" type="INT"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true"/>
+        </createTable>
+
+        <!-- Test Questions (Many-to-Many) -->
+        <createTable tableName="test_questions">
+            <column name="test_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="test_id" baseTableName="test_questions"
+                                 constraintName="fk_test_questions_test" referencedColumnNames="id" referencedTableName="tests"/>
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="test_questions"
+                                 constraintName="fk_test_questions_question" referencedColumnNames="id" referencedTableName="questions"/>
+
+        <!-- Test Results -->
+        <createTable tableName="test_results">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="test_results_pkey"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="test_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="INT"/>
+            <column name="date" type="TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="test_results"
+                                 constraintName="fk_test_results_user" referencedColumnNames="id" referencedTableName="users"/>
+        <addForeignKeyConstraint baseColumnNames="test_id" baseTableName="test_results"
+                                 constraintName="fk_test_results_test" referencedColumnNames="id" referencedTableName="tests"/>
+
+    </changeSet>
+
+</databaseChangeLog>
