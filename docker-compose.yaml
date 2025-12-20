@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-  postgres:
+  postgres_ort:
     image: postgres:16
-    container_name: postgres
+    container_name: postgres_ort
     restart: unless-stopped
     environment:
       POSTGRES_DB: ort
@@ -12,7 +12,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      # Host:Container
       - "5433:5432"
 
   redis:
@@ -23,14 +22,6 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: mailhog
-    restart: unless-stopped
-    ports:
-      - "1025:1025" # SMTP server
-      - "8025:8025" # Web UI
 
 volumes:
   postgres_data:

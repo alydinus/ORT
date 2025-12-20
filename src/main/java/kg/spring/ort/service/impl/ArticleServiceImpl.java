@@ -3,12 +3,19 @@ package kg.spring.ort.service.impl;
 import kg.spring.ort.dto.request.CreateArticleRequest;
 import kg.spring.ort.dto.request.UpdateArticleRequest;
 import kg.spring.ort.entity.ArticleEntity;
+import kg.spring.ort.entity.ArticleStatus;
+import kg.spring.ort.entity.ReactionEntity;
 import kg.spring.ort.exception.ArticleNotFoundException;
 import kg.spring.ort.repository.ArticleRepository;
+import kg.spring.ort.repository.ReactionRepository;
+import kg.spring.ort.repository.UserRepository;
 import kg.spring.ort.service.ArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -16,89 +23,113 @@ import java.util.List;
 public class ArticleServiceImpl implements ArticleService {
 
     private final ArticleRepository articleRepository;
-    private final kg.spring.ort.repository.ReactionRepository reactionRepository;
-    private final kg.spring.ort.repository.UserRepository userRepository;
+    private final ReactionRepository reactionRepository;
+    private final UserRepository userRepository;
 
-    public ArticleEntity createArticle(CreateArticleRequest request) {
-        return articleRepository.save(
-                ArticleEntity.builder()
-                        .title(request.title())
-                        .content(request.content())
-                        .authorId(request.authorId())
-                        .html(request.html())
-                        .build());
+    @Override
+    public ArticleEntity suggestArticle(CreateArticleRequest request, String username) {
+        var user = userRepository.findByEmail(username)
+                .or(() -> userRepository.findByUsername(username))
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        ArticleEntity entity = ArticleEntity.builder()
+                .title(request.title())
+                .content(request.content())
+                .authorId(user.getId())
+                .status(ArticleStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
+        return articleRepository.save(entity);
     }
 
-    public ArticleEntity getArticleById(Long id) {
-        return articleRepository.findById(id).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
+    @Override
+    public ArticleEntity getPublishedArticleById(Long id) {
+        ArticleEntity article = articleRepository.findById(id)
+                .orElseThrow(() -> new ArticleNotFoundException("Статья не найдена"));
+        if (article.getStatus() != ArticleStatus.PUBLISHED) {
+            throw new ArticleNotFoundException("Статья не найдена");
+        }
+        return article;
     }
 
-    public List<ArticleEntity> getAllArticles() {
-        return articleRepository.findAll();
+    @Override
+    public List<ArticleEntity> getPublishedArticles() {
+        return articleRepository.findAllByStatus(ArticleStatus.PUBLISHED);
     }
 
+    @Override
+    public List<ArticleEntity> getArticlesForModeration() {
+        return articleRepository.findAllByStatus(ArticleStatus.PENDING);
+    }
+
+    @Override
     public ArticleEntity updateArticle(Long id, UpdateArticleRequest request) {
-        ArticleEntity articleEntity = articleRepository.findById(id)
-                .orElseThrow(() -> new ArticleNotFoundException("Article not found"));
-        articleEntity.setTitle(request.title());
-        articleEntity.setContent(request.content());
-        articleEntity.setAuthorId(request.authorId());
-        articleEntity.setHtml(request.html());
-        return articleRepository.save(articleEntity);
+        ArticleEntity article = articleRepository.findById(id)
+                .orElseThrow(() -> new ArticleNotFoundException("Статья не найдена"));
+        article.setTitle(request.title());
+        article.setContent(request.content());
+        return articleRepository.save(article);
     }
 
+    @Override
     public void deleteArticle(Long id) {
         articleRepository.deleteById(id);
     }
 
     @Override
     public void addView(Long id) {
-        ArticleEntity article = getArticleById(id);
+        ArticleEntity article = articleRepository.findById(id)
+                .orElseThrow(() -> new ArticleNotFoundException("Статья не найдена"));
         article.setViews(article.getViews() + 1);
         articleRepository.save(article);
     }
 
     @Override
     public void publishArticle(Long id) {
-        ArticleEntity article = getArticleById(id);
-        article.setPublished(true);
+        ArticleEntity article = articleRepository.findById(id)
+                .orElseThrow(() -> new ArticleNotFoundException("Статья не найдена"));
+        article.setStatus(ArticleStatus.PUBLISHED);
         articleRepository.save(article);
     }
 
     @Override
     public void hideArticle(Long id) {
-        ArticleEntity article = getArticleById(id);
-        article.setPublished(false);
+        ArticleEntity article = articleRepository.findById(id)
+                .orElseThrow(() -> new ArticleNotFoundException("Статья не найдена"));
+        article.setStatus(ArticleStatus.HIDDEN);
         articleRepository.save(article);
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void toggleLike(Long articleId, String username) {
-        kg.spring.ort.entity.User user = userRepository.findByEmail(username)
+        var user = userRepository.findByEmail(username)
                 .or(() -> userRepository.findByUsername(username))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
         Long userId = user.getId();
 
-        java.util.Optional<kg.spring.ort.entity.ReactionEntity> existing = reactionRepository
-                .findByArticleEntityIdAndAuthorId(articleId, userId);
+        var existing = reactionRepository.findByArticleEntityIdAndAuthorId(articleId, userId);
         if (existing.isPresent()) {
             reactionRepository.delete(existing.get());
-        } else {
-            ArticleEntity article = getArticleById(articleId);
-            kg.spring.ort.entity.ReactionEntity reaction = kg.spring.ort.entity.ReactionEntity.builder()
-                    .articleEntityId(articleId)
-                    .reactionValue(kg.spring.ort.valueobj.ReactionValueObject.LIKE)
-                    .authorId(userId)
-                    .build();
-
-            if (article.getReactions() == null) {
-                article.setReactions(new java.util.ArrayList<>());
-            }
-            article.getReactions().add(reaction);
-
-            reactionRepository.save(reaction);
-            articleRepository.save(article);
+            return;
         }
+
+        ArticleEntity article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new ArticleNotFoundException("Статья не найдена"));
+
+        ReactionEntity reaction = ReactionEntity.builder()
+                .articleEntityId(articleId)
+                .reactionValue(kg.spring.ort.valueobj.ReactionValueObject.LIKE)
+                .authorId(userId)
+                .build();
+
+        if (article.getReactions() == null) {
+            article.setReactions(new ArrayList<>());
+        }
+        article.getReactions().add(reaction);
+
+        reactionRepository.save(reaction);
+        articleRepository.save(article);
     }
 }

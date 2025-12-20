@@ -48,7 +48,6 @@ public class UserServiceImpl implements UserService {
                 Role role = roleRepository.findByName(roleName)
                                 .orElseThrow(() -> new NotFoundException("Role not found: " + roleName));
 
-                // Avoid duplicates
                 if (!user.getRoles().contains(role)) {
                         user.getRoles().add(role);
                         userRepository.save(user);
@@ -56,7 +55,7 @@ public class UserServiceImpl implements UserService {
         }
 
         public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                var myUser = userRepository.findByUsername(username).orElseThrow(
+                var myUser = userRepository.findByUsernameWithRoles(username).orElseThrow(
                                 () -> new NotFoundException("User not found with username: " + username));
                 List<String> roles = myUser.getRoles().stream().map(Role::getName).toList();
                 List<SimpleGrantedAuthority> authorities = roles.stream()

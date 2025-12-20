@@ -7,11 +7,13 @@ import kg.spring.ort.entity.ArticleEntity;
 import java.util.List;
 
 public interface ArticleService {
-    ArticleEntity createArticle(CreateArticleRequest request);
+    ArticleEntity suggestArticle(CreateArticleRequest request, String username);
 
-    ArticleEntity getArticleById(Long id);
+    ArticleEntity getPublishedArticleById(Long id);
 
-    List<ArticleEntity> getAllArticles();
+    List<ArticleEntity> getPublishedArticles();
+
+    List<ArticleEntity> getArticlesForModeration();
 
     ArticleEntity updateArticle(Long id, UpdateArticleRequest request);
 

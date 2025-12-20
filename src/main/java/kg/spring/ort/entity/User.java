@@ -28,8 +28,13 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @jakarta.persistence.Column(unique = true, nullable = false)
     private String username;
+
+    @jakarta.persistence.Column(unique = true, nullable = false)
     private String email;
+
     private String password;
     @Builder.Default
     @ManyToMany

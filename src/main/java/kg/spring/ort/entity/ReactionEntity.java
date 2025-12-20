@@ -1,5 +1,6 @@
 package kg.spring.ort.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -31,5 +32,6 @@ public class ReactionEntity {
 
     private Long authorId;
 
+    @Column(name = "article_entity_id")
     private Long articleEntityId;
 }

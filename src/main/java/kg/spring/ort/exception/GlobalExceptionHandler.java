@@ -11,13 +11,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ArticleNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleArticleNotFoundException(ArticleNotFoundException ex) {
-        return handler("ARTICLE_NOT_FOUND", HttpStatus.NOT_FOUND.value(), ex);
+        return handler("ARTICLE_NOT_FOUND", HttpStatus.NOT_FOUND.value(), ex.getMessage());
     }
 
-    private ResponseEntity<ErrorResponse> handler(String errorCode, int status, Exception exc) {
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
+        return handler("BAD_REQUEST", HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+    }
+
+    private ResponseEntity<ErrorResponse> handler(String errorCode, int status, String message) {
         ErrorResponse error = new ErrorResponse(
                 errorCode,
-                exc.getMessage(),
+                message,
                 status,
                 System.currentTimeMillis()
         );

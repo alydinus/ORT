@@ -1,5 +1,6 @@
 package kg.spring.ort.controller;
 
+import jakarta.validation.Valid;
 import kg.spring.ort.dto.request.CreateArticleRequest;
 import kg.spring.ort.dto.request.UpdateArticleRequest;
 import kg.spring.ort.dto.response.ArticleResponse;
@@ -30,30 +31,53 @@ public class ArticleController {
     @GetMapping("/{id}")
     public ResponseEntity<ArticleResponse> getArticleById(@PathVariable Long id) {
         return new ResponseEntity<>(
-                articleMapper.toResponse(articleService.getArticleById(id)),
+                articleMapper.toResponse(articleService.getPublishedArticleById(id)),
                 HttpStatus.OK);
     }
 
     @GetMapping
     public ResponseEntity<?> getAllArticles() {
         return new ResponseEntity<>(
-                articleService.getAllArticles()
+                articleService.getPublishedArticles()
                         .stream()
                         .map(articleMapper::toResponse)
                         .toList(),
                 HttpStatus.OK);
     }
 
-    @PostMapping
-    public ResponseEntity<ArticleResponse> createArticle(@RequestBody CreateArticleRequest request) {
+    @PostMapping("/suggest")
+    public ResponseEntity<ArticleResponse> suggestArticle(@RequestBody @Valid CreateArticleRequest request,
+                                                         Principal principal) {
         return new ResponseEntity<>(
-                articleMapper.toResponse(articleService.createArticle(request)),
+                articleMapper.toResponse(articleService.suggestArticle(request, principal.getName())),
                 HttpStatus.CREATED);
+    }
+
+    @GetMapping("/moderation/queue")
+    public ResponseEntity<?> moderationQueue() {
+        return new ResponseEntity<>(
+                articleService.getArticlesForModeration()
+                        .stream()
+                        .map(articleMapper::toResponse)
+                        .toList(),
+                HttpStatus.OK);
+    }
+
+    @PutMapping("/moderation/{id}/publish")
+    public ResponseEntity<Void> publishArticle(@PathVariable Long id) {
+        articleService.publishArticle(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/moderation/{id}/hide")
+    public ResponseEntity<Void> hideArticle(@PathVariable Long id) {
+        articleService.hideArticle(id);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ArticleResponse> updateArticle(@PathVariable Long id,
-            @RequestBody UpdateArticleRequest request) {
+                                                         @RequestBody @Valid UpdateArticleRequest request) {
         return new ResponseEntity<>(
                 articleMapper.toResponse(articleService.updateArticle(id, request)),
                 HttpStatus.OK);
@@ -68,18 +92,6 @@ public class ArticleController {
     @PostMapping("/{id}/view")
     public ResponseEntity<Void> addView(@PathVariable Long id) {
         articleService.addView(id);
-        return ResponseEntity.ok().build();
-    }
-
-    @PutMapping("/{id}/publish")
-    public ResponseEntity<Void> publishArticle(@PathVariable Long id) {
-        articleService.publishArticle(id);
-        return ResponseEntity.ok().build();
-    }
-
-    @PutMapping("/{id}/hide")
-    public ResponseEntity<Void> hideArticle(@PathVariable Long id) {
-        articleService.hideArticle(id);
         return ResponseEntity.ok().build();
     }
 

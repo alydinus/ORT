@@ -20,9 +20,11 @@ public class AuthentificationFilter extends OncePerRequestFilter {
     private final JwtGenerator jwtGenerator;
     private final UserService userService;
 
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String header = request.getHeader("Authorization");
-        if (header != null && !header.startsWith("Bearer ")) {
+        if (header != null && header.startsWith("Bearer ")) {
             String jwt = header.substring(7);
             if (jwtGenerator.isAccess(jwt) && jwtGenerator.notExpiredAccess(jwt)) {
                 String username = jwtGenerator.extractUsernameFromAccess(jwt);
@@ -33,7 +35,9 @@ public class AuthentificationFilter extends OncePerRequestFilter {
     }
 
     private void authenticate(String username) {
-        if (SecurityContextHolder.getContext().getAuthentication() != null) return;
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            return;
+        }
         var user = userService.loadUserByUsername(username);
         var auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);

@@ -1,9 +1,9 @@
 package kg.spring.ort.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record CreateArticleRequest(
-        String title,
-        String content,
-        Long authorId,
-        String html
+        @NotBlank String title,
+        @NotBlank String content
 ) {
 }

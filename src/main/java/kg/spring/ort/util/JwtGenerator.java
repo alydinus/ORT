@@ -1,5 +1,6 @@
 package kg.spring.ort.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -45,12 +46,13 @@ public class JwtGenerator {
         this.refreshExpMs = refreshExpMs;
     }
 
-    public static Map readHeaderUnverified(String jwt) {
+    public static Map<String, Object> readHeaderUnverified(String jwt) {
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) throw new IllegalArgumentException("Bad JWT");
         byte[] headerBytes = Decoders.BASE64URL.decode(parts[0]);
         try {
-            return new ObjectMapper().readValue(headerBytes, Map.class);
+            return new ObjectMapper().readValue(headerBytes, new TypeReference<>() {
+            });
         } catch (Exception e) {
             throw new IllegalArgumentException("Cannot parse JWT header", e);
         }
@@ -58,17 +60,17 @@ public class JwtGenerator {
 
     public String generateAccessToken(String username) {
         var now = new Date();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+        User user = userRepository.findByUsernameWithRoles(username)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Role> roles = user.getRoles();
         Map<String, Object> claims = Map.of(
                 "roles", roles.stream().map(Role::getName).collect(Collectors.toList())
         );
         return Jwts.builder()
-                .setSubject(username)
                 .setHeaderParam("typ", "accessToken")
                 .setIssuedAt(now)
-                .setClaims(claims)
+                .setSubject(username)
+                .addClaims(claims)
                 .setExpiration(new Date(now.getTime() + accessExpMs))
                 .signWith(accessSecret, SignatureAlgorithm.HS256)
                 .compact();
@@ -76,17 +78,17 @@ public class JwtGenerator {
 
     public String generateRefreshToken(String username) {
         var now = new Date();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+        User user = userRepository.findByUsernameWithRoles(username)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Role> roles = user.getRoles();
         Map<String, Object> claims = Map.of(
                 "roles", roles.stream().map(Role::getName).collect(Collectors.toList())
         );
         return Jwts.builder()
-                .setSubject(username)
                 .setHeaderParam("typ", "refreshToken")
                 .setIssuedAt(now)
-                .setClaims(claims)
+                .setSubject(username)
+                .addClaims(claims)
                 .setExpiration(new Date(now.getTime() + refreshExpMs))
                 .signWith(refreshSecret, SignatureAlgorithm.HS256)
                 .compact();

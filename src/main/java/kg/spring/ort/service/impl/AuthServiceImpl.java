@@ -11,12 +11,14 @@ import kg.spring.ort.service.EmailService;
 import kg.spring.ort.service.OtpService;
 import kg.spring.ort.util.JwtGenerator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -30,6 +32,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     public User register(RegisterRequest request) {
+        Optional<User> existingUserByEmail = userRepository.findByEmail(request.email());
+        if (existingUserByEmail.isPresent()) {
+            User existing = existingUserByEmail.get();
+            if (existing.isEnabled()) {
+                throw new RuntimeException("User with this email is already registered and confirmed");
+            } else {
+                String otp = otpService.generateOtp(existing.getEmail());
+                emailService.sendEmail(existing.getEmail(), "ORT Platform Registration", "Your new OTP is: " + otp);
+                return existing;
+            }
+        }
+
+        Optional<User> existingUserByUsername = userRepository.findByUsername(request.username());
+        if (existingUserByUsername.isPresent()) {
+            throw new RuntimeException("Username is already taken");
+        }
+
         User user = User.builder()
                 .password(passwordEncoder.encode(request.password()))
                 .email(request.email())
@@ -37,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         roleRepository.findByName("ROLE_USER").ifPresent(role -> user.getRoles().add(role));
-        user.setEnabled(false); // Ensure disabled until OTP check
+        user.setEnabled(false);
         User savedUser = userRepository.save(user);
 
         String otp = otpService.generateOtp(user.getEmail());
@@ -61,6 +80,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public TokenPair login(LoginRequest request) {
+        log.info("Attempting login for username: {}", request.username());
         Optional<User> byUsername = userRepository.findByUsername(request.username());
         if (byUsername.isPresent()) {
             User user = byUsername.get();

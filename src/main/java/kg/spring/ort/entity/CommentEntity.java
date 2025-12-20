@@ -1,5 +1,6 @@
 package kg.spring.ort.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,4 +27,7 @@ public class CommentEntity {
     private String comment;
 
     private Long authorId;
+
+    @Column(name = "article_entity_id")
+    private Long articleEntityId;
 }
