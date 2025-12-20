@@ -1,41 +1,44 @@
-# ORT Platform Setup Guide
+# ORT Platform: руководство по запуску
 
-## Prerequisites
+## Требования
 - Java 21
 - Maven
-- Docker & Docker Compose
+- Docker и Docker Compose
 
-## Database & Redis Setup
-The project uses PostgreSQL for the database and Redis for caching and session management.
-To start them, run:
-```bash
-docker-compose up -d
-```
-This starts:
-- **Postgres**: Port 5433 (mapped to 5432 internally), Database: `ort`, User: `postgres`, Password: `1`
-- **Redis**: Port 6379 (Default)
-- **Mailhog**:
-  - SMTP: Port 1025 (for application)
-  - Web UI: http://localhost:8025 (view sent emails here)
+## Запуск PostgreSQL и Redis
+В папке `ort-1` выполните:
 
-## Building the Project
 ```bash
-mvn clean install
+docker compose up -d
 ```
 
-## Running the Application
+Поднимется:
+- PostgreSQL: `localhost:5433`, база `ort`, пользователь `postgres`, пароль `1`
+- Redis: `localhost:6379`
+
+## Сборка
+
 ```bash
-java -jar target/ort-0.0.1-SNAPSHOT.jar
-```
-Or with Maven:
-```bash
-mvn spring-boot:run
+./mvnw clean install
 ```
 
-## Application Access
-- **API Base URL**: `http://localhost:8088` (default Spring Boot port, confirm in application.properties if changed)
-- **Swagger UI**: `http://localhost:8088/swagger-ui/index.html` (if enabled)
+## Запуск приложения
 
-## Users
-- **Admin**: Create via database or registration if seed data exists.
-- **Roles**: USER, ADMIN
+```bash
+./mvnw spring-boot:run
+```
+
+## Доступ
+- API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+
+## Тестовые пользователи
+После поднятия базы (Liquibase заполняет данные автоматически):
+
+- Администратор: `admin` / `admin@ort.local`
+- Модератор: `moderator` / `moderator@ort.local`
+- Пользователь: `user` / `user@ort.local`
+
+Пароль для всех тестовых пользователей: `OrtTest123!`
+
+Если хотите сменить пароль тестовых пользователей, правьте сид-данные в `src/main/resources/db/changelog/db.changelog-master.sql`.

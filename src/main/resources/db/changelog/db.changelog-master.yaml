@@ -1,3 +1,5 @@
 databaseChangeLog:
-  - includeAll:
-      path: db/changelog/changeset
+  - include:
+      file: db/changelog/db.changelog-master.sql
+  - include:
+      file: db/changelog/seed-data.sql
