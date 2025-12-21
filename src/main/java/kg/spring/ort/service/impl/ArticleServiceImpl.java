@@ -6,16 +6,17 @@ import kg.spring.ort.entity.ArticleEntity;
 import kg.spring.ort.entity.ArticleStatus;
 import kg.spring.ort.entity.ReactionEntity;
 import kg.spring.ort.exception.ArticleNotFoundException;
+import kg.spring.ort.exception.NotFoundException;
 import kg.spring.ort.repository.ArticleRepository;
 import kg.spring.ort.repository.ReactionRepository;
 import kg.spring.ort.repository.UserRepository;
 import kg.spring.ort.service.ArticleService;
+import kg.spring.ort.valueobj.ReactionValueObject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,13 +31,29 @@ public class ArticleServiceImpl implements ArticleService {
     public ArticleEntity suggestArticle(CreateArticleRequest request, String username) {
         var user = userRepository.findByEmail(username)
                 .or(() -> userRepository.findByUsername(username))
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         ArticleEntity entity = ArticleEntity.builder()
                 .title(request.title())
                 .content(request.content())
                 .authorId(user.getId())
                 .status(ArticleStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
+        return articleRepository.save(entity);
+    }
+
+    @Override
+    public ArticleEntity createArticle(CreateArticleRequest request, String username) {
+        var user = userRepository.findByEmail(username)
+                .or(() -> userRepository.findByUsername(username))
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        ArticleEntity entity = ArticleEntity.builder()
+                .title(request.title())
+                .content(request.content())
+                .authorId(user.getId())
+                .status(ArticleStatus.PUBLISHED)
                 .createdAt(LocalDateTime.now())
                 .build();
         return articleRepository.save(entity);
@@ -105,7 +122,7 @@ public class ArticleServiceImpl implements ArticleService {
     public void toggleLike(Long articleId, String username) {
         var user = userRepository.findByEmail(username)
                 .or(() -> userRepository.findByUsername(username))
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         Long userId = user.getId();
 
@@ -115,21 +132,12 @@ public class ArticleServiceImpl implements ArticleService {
             return;
         }
 
-        ArticleEntity article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new ArticleNotFoundException("Статья не найдена"));
-
-        ReactionEntity reaction = ReactionEntity.builder()
-                .articleEntityId(articleId)
-                .reactionValue(kg.spring.ort.valueobj.ReactionValueObject.LIKE)
-                .authorId(userId)
-                .build();
-
-        if (article.getReactions() == null) {
-            article.setReactions(new ArrayList<>());
-        }
-        article.getReactions().add(reaction);
-
-        reactionRepository.save(reaction);
-        articleRepository.save(article);
+        reactionRepository.save(
+                ReactionEntity.builder()
+                        .articleEntityId(articleId)
+                        .authorId(userId)
+                        .reactionValue(ReactionValueObject.LIKE)
+                        .build()
+        );
     }
 }

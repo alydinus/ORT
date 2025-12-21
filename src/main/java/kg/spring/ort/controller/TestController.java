@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import kg.spring.ort.dto.request.SubmitTestRequest;
+import kg.spring.ort.dto.response.PageResponse;
 import kg.spring.ort.dto.response.TestResponse;
 import kg.spring.ort.dto.response.TestResultResponse;
 import kg.spring.ort.service.TestService;
@@ -20,9 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/tests")
 @RequiredArgsConstructor
@@ -31,9 +29,13 @@ public class TestController {
     private final TestService testService;
 
     @GetMapping
-    @Operation(summary = "Получить список активных тестов")
-    public ResponseEntity<List<TestResponse>> getAllTests() {
-        return ResponseEntity.ok(testService.getAllActiveTests());
+    @Operation(summary = "Получить список активных тестов (постранично)")
+    public ResponseEntity<PageResponse<TestResponse>> getAllTests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String theme
+    ) {
+        return ResponseEntity.ok(testService.getAllActiveTests(page, size, theme));
     }
 
     @GetMapping("/{id}")
@@ -49,9 +51,7 @@ public class TestController {
     public ResponseEntity<TestResultResponse> submitTestLegacy(@PathVariable Long id,
                                                                @RequestParam Integer score,
                                                                @AuthenticationPrincipal UserDetails userDetails) {
-        var request = new SubmitTestRequest(Map.of());
-        var result = testService.submitTest(userDetails.getUsername(), id, request);
-        result.setScore(score);
+        var result = testService.submitTestLegacy(userDetails.getUsername(), id, score);
         return ResponseEntity.ok(new TestResultResponse(
                 result.getId(),
                 result.getTest().getId(),
@@ -65,8 +65,8 @@ public class TestController {
     @PreAuthorize("hasAnyRole('USER', 'MODERATOR', 'ADMIN')")
     @Operation(summary = "Отправить ответы и получить результат", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<TestResultResponse> submitTest(@PathVariable Long id,
-                                                         @Valid @RequestBody SubmitTestRequest request,
-                                                         @AuthenticationPrincipal UserDetails userDetails) {
+                                                        @Valid @RequestBody SubmitTestRequest request,
+                                                        @AuthenticationPrincipal UserDetails userDetails) {
         var result = testService.submitTest(userDetails.getUsername(), id, request);
         return ResponseEntity.ok(new TestResultResponse(
                 result.getId(),

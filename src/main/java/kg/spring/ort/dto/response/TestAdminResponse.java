@@ -1,0 +1,16 @@
+package kg.spring.ort.dto.response;
+
+import java.util.List;
+
+public record TestAdminResponse(
+        Long id,
+        String title,
+        String description,
+        Integer durationMinutes,
+        boolean isActive,
+        String theme,
+        String authorUsername,
+        List<String> tags,
+        List<Long> questionIds
+) {
+}

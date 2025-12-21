@@ -9,6 +9,7 @@ import kg.spring.ort.service.ArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,6 +52,15 @@ public class ArticleController {
         return new ResponseEntity<>(
                 articleMapper.toResponse(articleService.suggestArticle(request, principal.getName())),
                 HttpStatus.CREATED);
+    }
+
+    @PostMapping("/moderation/create")
+    @PreAuthorize("hasAnyAuthority('ROLE_MODERATOR','ROLE_ADMIN')")
+    public ResponseEntity<ArticleResponse> createDirect(@RequestBody @Valid CreateArticleRequest request,
+                                                        Principal principal) {
+        var created = articleService.suggestArticle(request, principal.getName());
+        articleService.publishArticle(created.getId());
+        return new ResponseEntity<>(articleMapper.toResponse(articleService.getPublishedArticleById(created.getId())), HttpStatus.CREATED);
     }
 
     @GetMapping("/moderation/queue")

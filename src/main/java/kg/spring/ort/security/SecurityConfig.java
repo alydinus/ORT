@@ -29,8 +29,16 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/v1/api/articles/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/v1/api/tags").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/v1/api/themes").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/tests", "/api/tests/*").permitAll()
                         .requestMatchers("/v1/api/articles/suggest").authenticated()
+                        .requestMatchers("/v1/content/**").authenticated()
                         .requestMatchers("/v1/api/articles/moderation/**").hasAnyAuthority("ROLE_MODERATOR", "ROLE_ADMIN")
+                        .requestMatchers("/v1/api/moderation/**").hasAnyAuthority("ROLE_MODERATOR", "ROLE_ADMIN")
+                        .requestMatchers("/v1/api/test-bank/**").hasAnyAuthority("ROLE_MODERATOR", "ROLE_ADMIN")
+                        .requestMatchers("/v1/api/questions/moderation/**").hasAnyAuthority("ROLE_MODERATOR", "ROLE_ADMIN")
+                        .requestMatchers("/v1/api/questions/suggest", "/v1/api/questions/my-suggestions").hasAuthority("ROLE_USER")
                         .anyRequest().authenticated())
                 .addFilterBefore(authentificationFilter, UsernamePasswordAuthenticationFilter.class);
 

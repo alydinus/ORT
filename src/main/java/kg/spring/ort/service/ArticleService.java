@@ -9,6 +9,8 @@ import java.util.List;
 public interface ArticleService {
     ArticleEntity suggestArticle(CreateArticleRequest request, String username);
 
+    ArticleEntity createArticle(CreateArticleRequest request, String username);
+
     ArticleEntity getPublishedArticleById(Long id);
 
     List<ArticleEntity> getPublishedArticles();

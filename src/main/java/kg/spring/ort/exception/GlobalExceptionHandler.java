@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -32,6 +33,12 @@ public class GlobalExceptionHandler {
                 .map(err -> err.getField() + ": " + (err.getDefaultMessage() == null ? "некорректное значение" : err.getDefaultMessage()))
                 .orElse("Некорректные данные");
         return handler("VALIDATION_ERROR", HttpStatus.BAD_REQUEST.value(), message);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String name = ex.getName() == null ? "параметр" : ex.getName();
+        return handler("BAD_REQUEST", HttpStatus.BAD_REQUEST.value(), "Некорректный " + name);
     }
 
     @ExceptionHandler(Exception.class)
